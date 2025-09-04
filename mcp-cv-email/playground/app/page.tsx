@@ -1,0 +1,8 @@
+"use client";
+import { useState } from "react";
+export default function Page() {
+  const [file,setFile]=useState<File|null>(null); const [question,setQuestion]=useState(""); const [answer,setAnswer]=useState(""); const [to,setTo]=useState(""); const [subject,setSubject]=useState(""); const [html,setHtml]=useState("<p>Hello!</p>"); const [status,setStatus]=useState("");
+  const loadResume=async()=>{ if(!file)return; const SERVER=process.env.SERVER_BASE_URL!; const form=new FormData(); form.append("file",file); const r=await fetch(`${SERVER}/api/load-resume`,{method:"POST",body:form}); setStatus(JSON.stringify(await r.json())); };
+  const ask=async()=>{ const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})}); setAnswer(JSON.stringify(await r.json(),null,2)); };
+  const send=async()=>{ const r=await fetch("/api/email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,subject,html})}); setStatus(JSON.stringify(await r.json())); };
+  return (<main style={{maxWidth:760,margin:"2rem auto"}}><h1>MCP CV & Email Playground</h1><section><h2>Upload CV</h2><input type="file" onChange={e=>setFile(e.target.files?.[0]||null)}/><button onClick={loadResume}>Load</button></section><section><h2>Ask</h2><input value={question} onChange={e=>setQuestion(e.target.value)}/><button onClick={ask}>Ask</button><pre>{answer}</pre></section><section><h2>Email</h2><input value={to} onChange={e=>setTo(e.target.value)} placeholder="to"/><input value={subject} onChange={e=>setSubject(e.target.value)} placeholder="subject"/><textarea value={html} onChange={e=>setHtml(e.target.value)}></textarea><button onClick={send}>Send</button></section><pre>{status}</pre></main>);}
