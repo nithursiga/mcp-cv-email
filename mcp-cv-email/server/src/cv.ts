@@ -1,6 +1,4 @@
-// server/src/cv.ts
 
-// --- Lazy import for pdf-parse (avoids ENOENT on Windows) ---
 async function pdfParse(buf: Buffer) {
   const mod: any =
     (await import("pdf-parse/lib/pdf-parse.js").catch(() => null)) ??
@@ -9,20 +7,16 @@ async function pdfParse(buf: Buffer) {
   return pdf(buf);
 }
 
-// --- natural is CommonJS; use a namespace-style access instead of destructuring ---
 import natural from "natural";
 import { saveResumeText, loadResumeText } from "./storage.js";
 
-// Treat as 'any' to avoid ESM/CJS typing edge cases
 const N: any = (natural as any);
 
-// Try to construct tokenizer; if anything is off, we’ll fall back
 const tokenizer =
   N && typeof N.WordTokenizer === "function"
     ? new N.WordTokenizer()
     : null;
 
-// Fallback tokenizer (simple, Unicode-aware word split)
 function simpleTokenize(s: string): string[] {
   return (s.toLowerCase().match(/\p{L}+\p{M}*|\p{N}+/gu) ?? []);
 }
@@ -59,14 +53,12 @@ export function getResumeTextOrThrow() {
 export function answerResumeQuestion(question: string | null | undefined) {
   const text = getResumeTextOrThrow();
 
-  // Very naive sentence split
   const sentences = text.split(/(?<=[\.!\?])\s+(?=[A-Z0-9])/g);
 
   // Build TF-IDF index over sentences using natural's TfIdf
   const TfIdfCtor = N?.TfIdf;
   const tfidf = TfIdfCtor ? new TfIdfCtor() : null;
 
-  // If natural.TfIdf isn't available for some reason, just return a generic message
   if (!tfidf) {
     return {
       answer:
@@ -78,14 +70,12 @@ export function answerResumeQuestion(question: string | null | undefined) {
 
   sentences.forEach((s: string) => tfidf.addDocument(s));
 
-  // Tokenize query safely
   const q = (question ?? "").toLowerCase();
   const rawTokens =
     tokenizer && typeof tokenizer.tokenize === "function"
       ? (tokenizer.tokenize(q) as string[])
       : simpleTokenize(q);
 
-  // Stem tokens if available, else keep raw tokens
   const stemmer = N?.PorterStemmer;
   const queryTokens = stemmer
     ? rawTokens.map((t) => stemmer.stem(t))

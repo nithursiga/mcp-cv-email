@@ -11,7 +11,7 @@ const app = express();
 
 app.use(bodyParser.json({ limit: "10mb" }));
 
-// Upload and parse résumé (PDF or TXT)
+// Upload and parse resume (PDF or TXT)
 app.post("/api/load-resume", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "Upload `file`" });
@@ -23,7 +23,7 @@ app.post("/api/load-resume", upload.single("file"), async (req, res) => {
   }
 });
 
-// Ask a question about the résumé
+// Ask a question about the resume
 app.post("/api/ask", async (req, res) => {
   try {
     const { question } = req.body || {};
